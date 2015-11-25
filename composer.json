@@ -1,0 +1,7 @@
+{
+	"name": "infrajs/once",
+	"license": "GPL3",
+	"require":{
+		"infrajs/hash":"~1"
+	}
+}
