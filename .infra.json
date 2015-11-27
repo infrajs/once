@@ -1,5 +1,5 @@
 {
 	"once":{
-		"require":"*once/once.php"
+		"require":"*once/infra.php"
 	}
 }
