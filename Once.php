@@ -6,8 +6,12 @@ use infrajs\hash\Hash;
 class Once {
 	public static $store=array();
 	public static function &exec($name, $call, $args = array(), $re = false) {
-		$strargs = Hash::make($args);
-		$hash = $name.$strargs;
+		if (sizeof($args)) {
+			$strargs = Hash::make($args);
+			$hash = $name.$strargs;
+		} else {
+			$hash = $name;
+		}
 
 		if (!is_callable($call)) {
 			$re = false;

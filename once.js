@@ -1,4 +1,4 @@
-(function () {
+define('?*once/once.js', ['?*hash/hash.js'], function(hash){
 	var store={};
 	var key = function (name, args) {
 		return name + '-' + window.hash(args);
@@ -20,4 +20,5 @@
 	once.clear=clear;
 	once.key=key;
 	window.once=once;
-})();
+	return once;
+});
