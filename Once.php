@@ -7,27 +7,31 @@ class Once {
 	public static $store=array();
 	public static function &exec($name, $call, $args = array(), $re = false) {
 		if (sizeof($args)) {
-			$strargs = Hash::make($args);
-			$hash = $name.$strargs;
+			$hash = $name.Hash::make($args);
 		} else {
 			$hash = $name;
 		}
+		if (!isset(self::$store[$hash])) {
+			self::$store[$hash] = array();
+		}
+		$store=&self::$store[$hash];
 
 		if (!is_callable($call)) {
-			$re = false;
-			self::$store[$hash] = array('result' => $call);
+			return $store['result'] = $call;
 		}
-		if (isset(self::$store[$hash]) && !$re) {
-			return self::$store[$hash]['result'];
+
+		if (isset($store) && !$re) {
+			return $store['result'];
 		}
-		self::$store[$hash] = array('exec' => true);
+
+		$store['exec'] = true;
 
 		$v = array_merge($args, array($re, $hash));
 		$v = call_user_func_array($call, $v);
 
-		self::$store[$hash]['result'] = $v;
+		$store['result'] = $v;
 
-		return self::$store[$hash]['result'];
+		return $store['result'];
 	}
 	public static function clear($name, $args){
 		$strargs = Hash::make($args);
