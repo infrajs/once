@@ -6,21 +6,24 @@ use infrajs\hash\Hash;
 class Once {
 	public static $store=array();
 	public static function &exec($name, $call, $args = array(), $re = false) {
+
 		if (sizeof($args)) {
 			$hash = $name.Hash::make($args);
 		} else {
 			$hash = $name;
 		}
+
 		if (!isset(self::$store[$hash])) {
 			self::$store[$hash] = array();
 		}
 		$store=&self::$store[$hash];
 
 		if (!is_callable($call)) {
-			return $store['result'] = $call;
+			$store['result'] = $call;
+			$r=true;
+			return $r;
 		}
-
-		if (isset($store) && !$re) {
+		if (!empty($store) && !$re) {
 			return $store['result'];
 		}
 
