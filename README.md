@@ -1,6 +1,7 @@
+[![Latest Stable Version](https://poser.pugx.org/infrajs/once/v/stable)](https://packagist.org/packages/infrajs/once) [![Total Downloads](https://poser.pugx.org/infrajs/once/downloads)](https://packagist.org/packages/infrajs/once)
+
 # once
 Excecute php one time ```infra_once()```
-[![Latest Stable Version](https://poser.pugx.org/infrajs/once/v/stable)](https://packagist.org/packages/infrajs/once) [![Total Downloads](https://poser.pugx.org/infrajs/once/downloads)](https://packagist.org/packages/infrajs/once)
 
 # Data caching
 >caches data for fast access.
