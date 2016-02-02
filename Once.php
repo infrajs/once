@@ -36,9 +36,12 @@ class Once {
 
 		return $store['result'];
 	}
-	public static function clear($name, $args){
-		$strargs = Hash::make($args);
-		$hash = $name.$strargs;
+	public static function clear($name, $args = array()){
+		if (sizeof($args)) {
+			$hash = $name.Hash::make($args);
+		} else {
+			$hash = $name;
+		}
 		unset(self::$store[$hash]);
 		return $hash;
 	}
