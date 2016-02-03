@@ -6,6 +6,12 @@ if (!is_file('vendor/autoload.php')) {
 }
 
 //$func = function() {$a = 1; $b = 2; return $a + $b;}
+$res = Once::exec('test', function($a, $b) {return $a + $b;}, [4, 5]);
+assert(9 === $res);
+$res = Once::exec('test', function($a, $b) {return $a + $b;}, [10, 5]);
+assert(15 !== $res);
+assert(9 === $res);
+Once::clear('test');
 $res = Once::exec('test', function() {$a = 1; $b = 2; return $a + $b;});
 assert(3 === $res);
 $res = Once::exec('test', function() {$a = 3; $b = 2; return $a * $b;});
