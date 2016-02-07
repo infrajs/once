@@ -7,8 +7,13 @@ Excecute php one time ```infra_once()```
 >caches data for fast access.
 
 ```php
-$data = Once::exec('unique_name', $data); //$data - массив данных для кэширования
-Once::clear('unique_name'); // Очищает кэш для этих данных
+$data = Once::exec('unique_name', $data [, array $args [, boolean $re]] );
+// unique_name - A unique name in text format.
+// $data - The anonymous function returns the correct data to cache.
+// $args - An array of arguments which can be function called $data. When passing different arguments caching is not happening.
+// $re - If this parameter is passed as true, the caching is not happening.
+Once::clear('unique_name'); 
+// Clears the cache for the unique name.
 ```
 
 ### Testing
@@ -36,6 +41,16 @@ phpunit --bootstrap Once.php tests/OnceTest
 # Кэширование данных
 
 > кэширует данные для более быстрого доступа к одним и тем же обращениям
+
+```php
+$data = Once::exec('unique_name', $data [, array $args [, boolean $re]] );
+// unique_name - уникальное имя в текстовом формате.
+// $data - анонимная функция возвращающая необходимые данные для кэширования.
+// $args - массив аргументов с которыми может быть вызвана функция $data. При передаче разных аргументов кэширование не происходит.
+// $re - если данный параметр передан как true, кэширование не происходит.
+Once::clear('unique_name'); 
+// Очищает кэш для уникального имени.
+```
 
 ### Тест
 
