@@ -2,6 +2,7 @@
 namespace infrajs\once;
 
 use infrajs\hash\Hash;
+require_once __DIR__ . '/../hash/Hash.php';
 
 class Once {
 	public static $store=array();
