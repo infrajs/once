@@ -9,15 +9,14 @@ class Once {
 	public static function &exec($name, $call, $args = array(), $re = false) {
 
 		if (sizeof($args)) {
-			$hash = $name.Hash::make($args);
+			$hash = Hash::make($args);
 		} else {
-			$hash = $name;
+			$hash = '';
 		}
-
-		if (!isset(self::$store[$hash])) {
-			self::$store[$hash] = array();
-		}
-		$store=&self::$store[$hash];
+		
+		if (!isset(self::$store[$name])) self::$store[$name] = array();
+		if (!isset(self::$store[$name][$hash])) self::$store[$name][$hash] = array();
+		$store=&self::$store[$name][$hash];
 
 		if (!is_callable($call)) {
 			$store['result'] = $call;
@@ -38,12 +37,19 @@ class Once {
 		return $store['result'];
 	}
 	public static function clear($name, $args = array()){
-		if (sizeof($args)) {
-			$hash = $name.Hash::make($args);
-		} else {
-			$hash = $name;
+		if (empty(self::$store[$name])) return;
+		if ($args===true) {
+			unset(self::$store[$name]);
+			return;
 		}
-		unset(self::$store[$hash]);
-		return $hash;
+
+		if (sizeof($args)) {
+			$hash = Hash::make($args);
+		} else {
+			$hash = '';
+		}
+		
+		unset(self::$store[$name][$hash]);
+		return;
 	}
 }
