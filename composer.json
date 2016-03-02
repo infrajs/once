@@ -1,5 +1,6 @@
 {
 	"name": "infrajs/once",
+	"homepage":"https://github.com/infrajs/once",
 	"license": "GPL3",
 	"autoload": {
 		"psr-4": { "infrajs\\once\\": "/" }
