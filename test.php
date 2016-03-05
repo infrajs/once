@@ -26,7 +26,7 @@ assert(3 === $res);
 $res = Once::exec('test', function() {$a = 3; $b = 2; return $a * $b;}, array(), true);
 assert(6 === $res);
 if ($res) {
-	echo '{result:1}';
+    echo '{"result":1}';
 	return true; 	
 }
 echo '{result:0, msg:"В работе методов класса Once произошел сбой."}';
