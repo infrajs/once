@@ -2,11 +2,19 @@
 	
 	var Once = {
 		store: {},
+		omit: function($name, $args) {
+			var hash = Once.key(name, args);
+			if (Once.store[hash]) {
+				Once.store[hash] = {'result': 'is'};
+				return false; //будет означать пропустить в условии
+			}
+			return true;
+		},
 		key: function (name, args) {
 			return name + '-' + Hash.exec(args);
 		},
 		exec: function (name, call, args, re) {
-			var hash=Once.key(name, args);
+			var hash = Once.key(name, args);
 			if (!Once.store[hash]||re) {
 				if (typeof(args)=='object'&&args.constructor==Array) {
 					var r=call.apply(this, args.concat([re]));
