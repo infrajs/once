@@ -2,7 +2,7 @@
 	
 	var Once = {
 		store: {},
-		omit: function($name, $args) {
+		omit: function(name, args) {
 			var hash = Once.key(name, args);
 			if (Once.store[hash]) {
 				Once.store[hash] = {'result': 'is'};
