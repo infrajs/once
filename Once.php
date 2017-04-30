@@ -1,11 +1,20 @@
 <?php
 namespace infrajs\once;
-
 use infrajs\hash\Hash;
-require_once __DIR__ . '/../hash/Hash.php';
 
 class Once {
-	public static $store=array();
+	public static $store = array();
+	public static function omit($name, $args = array())
+	{	
+		if (sizeof($args)) $hash = Hash::make($args);
+		else $hash = '';
+		if (empty(Once::$store[$name][$hash])) {
+			if (!isset(Once::$store[$name])) Once::$store[$name] = array();
+			Once::$store[$name][$hash] = array('result' => 'is');
+			return false; //будет означать пропустить в условии
+		}
+		return true;
+	}
 	public static function &exec($name, $call, $args = array(), $re = false) {
 
 		if (sizeof($args)) {
@@ -14,9 +23,9 @@ class Once {
 			$hash = '';
 		}
 		
-		if (!isset(self::$store[$name])) self::$store[$name] = array();
-		if (!isset(self::$store[$name][$hash])) self::$store[$name][$hash] = array();
-		$store=&self::$store[$name][$hash];
+		if (!isset(Once::$store[$name])) Once::$store[$name] = array();
+		if (!isset(Once::$store[$name][$hash])) Once::$store[$name][$hash] = array();
+		$store=&Once::$store[$name][$hash];
 
 		if (!is_callable($call)) {
 			$store['result'] = $call;
