@@ -4,13 +4,14 @@
 		store: {},
 		omit: function(name, args) {
 			var hash = Once.key(name, args);
-			if (Once.store[hash]) {
+			if (!Once.store[hash]) {
 				Once.store[hash] = {'result': 'is'};
 				return false; //будет означать пропустить в условии
 			}
 			return true;
 		},
 		key: function (name, args) {
+			if (!name) name = '';
 			return name + '-' + Hash.exec(args);
 		},
 		exec: function (name, call, args, re) {
