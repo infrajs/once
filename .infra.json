@@ -1,5 +1,4 @@
 {
 	"js":"Once.js",
-	"tester":"test.php",
-	"dependencies":"hash"
+	"tester":"test.php"
 }
