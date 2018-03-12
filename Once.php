@@ -35,7 +35,8 @@ class Once
 		return $item;
 	}
 	public static function encode($str) {
-		$str = preg_replace ("/[^a-zA-ZА-Яа-я0-9~\-!]/ui","-",$str);
+		$str = preg_replace('/[\\\\\\/\.,]/ui',"_",$str);//Принципиальные, но запрещённые символы
+		$str = preg_replace("/[^a-zA-ZА-Яа-я0-9~\-!_]/ui","-",$str);
 		$str = preg_replace('/\-+/', '-', $str);
 		$str = trim($str,'-');
 		return $str;
@@ -90,23 +91,25 @@ class Once
         Once::$item = &$item;
         return $item;
     }
-	public static function omit($args = array(), $condfn = array(), $condargs = array(), $level = 0)
+	/*public static function omit($args = array(), $condfn = array(), $condargs = array(), $level = 0)
 	{
 		$level++;
 		$item = &static::createItem($args, $condfn, $condargs, $level);
-		static::start($item);
-		if (empty($item['exec']['start'])) {
+		$execute = empty($item['exec']['start']);
+		if ($execute) {
 			$item['exec']['start'] = true;
-			return false;
 		}
-		static::end($item);
-		return true;
-	}
+		return !$execute;
+	}*/
 	public static function clear($id) {
 		unset(Once::$items[$id]['exec']['start']);
 	}
 	public static function execfn(&$item, $fn) {
 		$item['exec']['result'] = call_user_func_array($fn, $item['args']);
+		/*if(!is_callable($fn)){
+			echo '<pre>';
+			debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+		}*/
     }
 	public static function &func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
 		$level++;
