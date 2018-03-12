@@ -35,6 +35,7 @@ class Once
 		return $item;
 	}
 	public static function encode($str) {
+		if (strlen($str)>100) return md5($str);
 		$str = preg_replace('/[\\\\\\/\.,]/ui',"_",$str);//Принципиальные, но запрещённые символы
 		$str = preg_replace("/[^a-zA-ZА-Яа-я0-9~\-!_]/ui","-",$str);
 		$str = preg_replace('/\-+/', '-', $str);
