@@ -8,7 +8,7 @@ class Once
 	public static $item = false;
 	public static $items = array();
 	public static $lastid = false;
-
+	public static $nextgid = false;
 	public static function &createItem($args = array(), $condfn = array(), $condargs = array(), $level = 0)
 	{
 		$level++;
@@ -42,6 +42,7 @@ class Once
 		$str = trim($str,'-');
 		return $str;
 	}
+	public static $rp = false;
 	/**
 	 * На заданное количество шагов назад определяем файл и сроку вызов, по которым формируем $gid
 	 * На основе $args формируем $hash который вместе с $gid формирует $id индетифицирующий место вызова с такими аргуентами
@@ -55,12 +56,16 @@ class Once
 	public static function hash($args = array(), $level = 0)
 	{
 		$hashargs = Once::encode(json_encode($args, JSON_UNESCAPED_UNICODE));
-		$callinfos = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $level + 2);
+		if (Once::$nextgid) { //Определяем свой Id, что бы можно было сделать функцию clear
+			$gid = Once::$nextgid;
+			Once::$nextgid = false;
+		}
+			$callinfos = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $level + 2);
 		$fn = Once::encode($callinfos[$level+1]['function']);
 		$callinfo = $callinfos[$level];
 		$path = $callinfo['file'];
-		$src = realpath('.');
-		$path = str_replace($src . DIRECTORY_SEPARATOR, '', $path); //Путь от корня
+		
+		$path = str_replace(Once::$rp . DIRECTORY_SEPARATOR, '', $path); //Путь от корня
 		$gid = Once::encode($path) . '-' . $callinfo['line'] . '-' . $fn;
 		$id = md5($gid . '-' . $hashargs);
 		return [$gid, $id, $hashargs, $fn];
@@ -70,13 +75,12 @@ class Once
 	{
 		$parents = array_reverse(Once::$parents); //От последнего вызова
         foreach ($parents as $pid) {
-            if (Once::$items[$pid]['condfn']) break; //У родителя своя функция проверки
+            //if (Once::$items[$pid]['condfn']) break; //У родителя своя функция проверки
             foreach ($item['exec']['conds'] as $cond) {
                 if (!in_array($cond, Once::$items[$pid]['exec']['conds'])) Once::$items[$pid]['exec']['conds'][] = $cond;
             }
             if (!isset(Once::$items[$pid]['exec']['end'])) break; //Дальше этот родитель передаст сам, когда завериштся
         }
-
 		Once::$lastid = array_pop(Once::$parents);
 		if (sizeof(Once::$parents)) {
 			Once::$item = &Once::$items[Once::$parents[sizeof(Once::$parents) - 1]];
@@ -102,8 +106,17 @@ class Once
 		}
 		return !$execute;
 	}*/
-	public static function clear($id) {
-		unset(Once::$items[$id]['exec']['start']);
+	public static function clear($gid, $args = array()) {
+		if (isset(Once::$items[$gid])) {
+			unset(Once::$items[$gid]['exec']['start']);
+		} else {
+			$hashargs = Once::encode(json_encode($args, JSON_UNESCAPED_UNICODE));
+			$id = md5($gid . '-' . $hashargs);
+			if (isset(Once::$items[$id])) {
+				unset(Once::$items[$id]['exec']['start']);
+			}
+		}
+
 	}
 	public static function execfn(&$item, $fn) {
 		$item['exec']['result'] = call_user_func_array($fn, $item['args']);
@@ -174,6 +187,7 @@ class Once
         }
     }
     public static function init () {
+    	Once::$rp = realpath('.');
 		Once::$item = &Once::createItem();
 		Once::$parents[] = Once::$item['id'];
     }
