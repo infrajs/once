@@ -29,4 +29,4 @@ assert(3 === $res);
 $res = Once::func( function() {$a = 3; $b = 2; return $a * $b;}, array(), true);
 assert(6 === $res);
 
-echo '{result: 1}';
+echo '{"result": 1}';

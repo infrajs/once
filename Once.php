@@ -22,14 +22,11 @@ class Once
 		$item['hash'] = $hash;
 		$item['condfn'] = $condfn;
         $item['condargs'] = $condargs;  
-		$item['exec'] = array();
-		$item['exec']['timer'] = 0;
-		$item['exec']['childs'] = array();
-		
-		$item['exec']['conds'] = array();
-        if ($condfn) {
-            $item['exec']['conds'][] = array('fn' => $condfn, 'args' => $condargs);
-        }
+		$item['timer'] = 0;
+		$item['start'] = false;
+		$item['title'] = $id;
+		$item['gtitle'] = $gid;
+		$item['childs'] = array();
 
 		Once::$items[$id] = &$item;
 		return $item;
@@ -60,8 +57,12 @@ class Once
 			$gid = Once::$nextgid;
 			Once::$nextgid = false;
 		}
-			$callinfos = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $level + 2);
-		$fn = Once::encode($callinfos[$level+1]['function']);
+		$callinfos = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $level + 2);
+		if (isset($callinfos[$level+1])) {
+			$fn = Once::encode($callinfos[$level+1]['function']);
+		} else {
+			$fn = '';
+		}
 		$callinfo = $callinfos[$level];
 		$path = $callinfo['file'];
 		
@@ -72,78 +73,63 @@ class Once
 	}
 
 	public static function end(&$item)
-	{
-		$parents = array_reverse(Once::$parents); //От последнего вызова
-        foreach ($parents as $pid) {
-            //if (Once::$items[$pid]['condfn']) break; //У родителя своя функция проверки
-            foreach ($item['exec']['conds'] as $cond) {
-                if (!in_array($cond, Once::$items[$pid]['exec']['conds'])) Once::$items[$pid]['exec']['conds'][] = $cond;
-            }
-            if (!isset(Once::$items[$pid]['exec']['end'])) break; //Дальше этот родитель передаст сам, когда завериштся
-        }
+	{		
 		Once::$lastid = array_pop(Once::$parents);
-		if (sizeof(Once::$parents)) {
-			Once::$item = &Once::$items[Once::$parents[sizeof(Once::$parents) - 1]];
-		} else {
-			$r = null;
-			Once::$item = &$r;
-		}
+		Once::$item = &Once::$items[Once::$parents[sizeof(Once::$parents) - 1]];
 	}
-	public static function &start($item)
+	public static function &start(&$item)
     {
-        if (!in_array($item['id'], Once::$item['exec']['childs'])) Once::$item['exec']['childs'][] = $item['id'];
+        if (!in_array($item['id'], Once::$item['childs'])) {
+        	Once::$item['childs'][$item['id']] = true;
+        }
         Once::$parents[] = $item['id'];
         Once::$item = &$item;
         return $item;
     }
-	/*public static function omit($args = array(), $condfn = array(), $condargs = array(), $level = 0)
-	{
-		$level++;
-		$item = &static::createItem($args, $condfn, $condargs, $level);
-		$execute = empty($item['exec']['start']);
-		if ($execute) {
-			$item['exec']['start'] = true;
-		}
-		return !$execute;
-	}*/
 	public static function clear($gid, $args = array()) {
 		if (isset(Once::$items[$gid])) {
-			unset(Once::$items[$gid]['exec']['start']);
+			unset(Once::$items[$gid]['start']);
 		} else {
 			$hashargs = Once::encode(json_encode($args, JSON_UNESCAPED_UNICODE));
 			$id = md5($gid . '-' . $hashargs);
 			if (isset(Once::$items[$id])) {
-				unset(Once::$items[$id]['exec']['start']);
+				unset(Once::$items[$id]['start']);
 			}
 		}
 
 	}
 	public static function execfn(&$item, $fn) {
-		$item['exec']['result'] = call_user_func_array($fn, $item['args']);
+		$item['result'] = call_user_func_array($fn, $item['args']);
 		/*if(!is_callable($fn)){
 			echo '<pre>';
 			debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 		}*/
     }
 	public static function &func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
+
 		$level++;
+
 		$item = &static::createItem($args, $condfn, $condargs, $level);
+		
 		static::start($item);
+
         $execute = static::isChange($item);
         if ($execute) {
-            $item['exec']['start'] = true; //Метка что кэш есть.
+        	//Раз выполняем значит будут новые данные даже если это было загружено
+            $item['start'] = true; //Метка что результат есть.
             $t = microtime(true);
 			static::execfn($item, $fn);
 			$t = microtime(true) - $t;
-			$item['exec']['timer'] += $t;
-			$item['exec']['end'] = true;
-			Once::$item['exec']['timer'] -= $t;
+			$item['timer'] += $t;
         }
 		static::end($item);
-        return $item['exec']['result'];
+		if ($execute) {
+			Once::$item['timer'] -= $t;
+		}
+        return $item['result'];
 	}
 	public static function isChange(&$item) {
-		return empty($item['exec']['start']);
+		return empty($item['start']);
 	}
     /**
 	* Имитирует выполнение $call в рамках указанного $item
@@ -161,7 +147,7 @@ class Once
 		//Дети могу вычитать, а тут всё прибавить
 		$r = $call();
 		$t = microtime(true) - $t;
-		Once::$item['exec']['timer'] += $t;
+		Once::$item['timer'] += $t;
 		Once::$item = &$old;
 		Once::$parents = $oldparents;
 
