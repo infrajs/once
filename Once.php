@@ -1,5 +1,6 @@
 <?php
 namespace infrajs\once;
+use infrajs\nostore\Nostore;
 
 class Once
 {
@@ -20,6 +21,8 @@ class Once
 		$item['fn'] = $fn;
 		$item['args'] = $args;
 		$item['hash'] = $hash;
+		$item['conds'] = array();
+		$item['nostore'] = false;
 		$item['condfn'] = $condfn;
         $item['condargs'] = $condargs;  
 		$item['timer'] = 0;
@@ -53,10 +56,7 @@ class Once
 	public static function hash($args = array(), $level = 0)
 	{
 		$hashargs = Once::encode(json_encode($args, JSON_UNESCAPED_UNICODE));
-		if (Once::$nextgid) { //Определяем свой Id, что бы можно было сделать функцию clear
-			$gid = Once::$nextgid;
-			Once::$nextgid = false;
-		}
+		
 		$callinfos = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $level + 2);
 		if (isset($callinfos[$level+1])) {
 			$fn = Once::encode($callinfos[$level+1]['function']);
@@ -67,7 +67,12 @@ class Once
 		$path = $callinfo['file'];
 		
 		$path = str_replace(Once::$rp . DIRECTORY_SEPARATOR, '', $path); //Путь от корня
-		$gid = Once::encode($path) . '-' . $callinfo['line'] . '-' . $fn;
+		if (Once::$nextgid) { //Определяем свой Id, что бы можно было сделать функцию clear
+			$gid = Once::$nextgid;
+			Once::$nextgid = false;
+		} else {
+			$gid = Once::encode($path) . '-' . $callinfo['line'] . '-' . $fn;	
+		}
 		$id = md5($gid . '-' . $hashargs);
 		return [$gid, $id, $hashargs, $fn];
 	}
@@ -79,9 +84,7 @@ class Once
 	}
 	public static function &start(&$item)
     {
-        if (!in_array($item['id'], Once::$item['childs'])) {
-        	Once::$item['childs'][$item['id']] = true;
-        }
+        Once::$item['childs'][$item['id']] = true;
         Once::$parents[] = $item['id'];
         Once::$item = &$item;
         return $item;
@@ -98,13 +101,17 @@ class Once
 		}
 
 	}
-	public static function execfn(&$item, $fn) {
-		$item['result'] = call_user_func_array($fn, $item['args']);
-		/*if(!is_callable($fn)){
-			echo '<pre>';
-			debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-		}*/
-    }
+	/*public static function lastPrint() {
+		echo '<pre>';
+		unset(Once::$items[Once::$lastid]['result'])
+		print_r(Once::$items[Once::$lastid]);
+	}*/
+	public static function execfn(&$item, $fn)
+	{
+		$item['nostore'] = Nostore::check(function () use (&$item, $fn) { //Проверка был ли запрет кэша
+			$item['result'] = call_user_func_array($fn, $item['args']);
+		});
+	}
 	public static function &func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
 
 		$level++;
@@ -117,10 +124,13 @@ class Once
         if ($execute) {
         	//Раз выполняем значит будут новые данные даже если это было загружено
             $item['start'] = true; //Метка что результат есть.
+            $item['conds'] = array(); //Если загрузили надо удалить старые условия, сейчас появятся новые может быть... 
             $t = microtime(true);
 			static::execfn($item, $fn);
 			$t = microtime(true) - $t;
 			$item['timer'] += $t;
+        } else {
+        	if ($item['nostore']) Nostore::on();
         }
 		static::end($item);
 		if ($execute) {
