@@ -13,10 +13,11 @@ class Once
 	public static function &createItem($args = array(), $condfn = array(), $condargs = array(), $level = 0)
 	{
 		$level++;
-		list($gid, $id, $hash, $fn) = static::hash($args, $level);
+		list($gid, $id, $hash, $fn, $file) = static::hash($args, $level);
 		if (isset(Once::$items[$id])) return Once::$items[$id];
 		$item = array();
 		$item['gid'] = $gid;
+		$item['file'] = $file;
 		$item['id'] = $id;
 		$item['fn'] = $fn;
 		$item['args'] = $args;
@@ -74,7 +75,7 @@ class Once
 			$gid = Once::encode($path) . '-' . $callinfo['line'] . '-' . $fn;	
 		}
 		$id = md5($gid . '-' . $hashargs);
-		return [$gid, $id, $hashargs, $fn];
+		return [$gid, $id, $hashargs, $fn, $path];
 	}
 
 	public static function end(&$item)
