@@ -133,11 +133,15 @@ class Once
         } else {
         	if ($item['nostore']) Nostore::on();
         }
+        static::isReady($item);
 		static::end($item);
 		if ($execute) {
 			Once::$item['timer'] -= $t;
 		}
         return $item['result'];
+	}
+	public static function isReady(&$item) {
+		
 	}
 	public static function isChange(&$item) {
 		return empty($item['start']);
