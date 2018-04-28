@@ -107,13 +107,26 @@ class Once
 		unset(Once::$items[Once::$lastid]['result'])
 		print_r(Once::$items[Once::$lastid]);
 	}*/
+	/*public static function clone($array) {
+	    return array_map(function($element) {
+	        return ((is_array($element))
+	            ? call_user_func('infrajs\once\Once::clone', $element)
+	            : ((is_object($element))
+	                ? clone $element
+	                : $element
+	            )
+	        );
+	    }, $array);
+	}*/
 	public static function execfn(&$item, $fn)
 	{
 		$item['nostore'] = Nostore::check(function () use (&$item, $fn) { //Проверка был ли запрет кэша
+			$item['result'] = null;
 			$item['result'] = call_user_func_array($fn, $item['args']);
+			//if (is_array($item['result'])) $item['result'] = Once::clone($item['result']);
 		});
 	}
-	public static function &func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
+	public static function func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
 
 		$level++;
 
@@ -168,10 +181,10 @@ class Once
 
 		return $r;
 	}
-	public static function &exec($gtitle, $fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0)
+	public static function exec($gtitle, $fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0)
     {   
         $level++;
-        $res = &static::func($fn, $args, $condfn, $condargs, $level);
+        $res = static::func($fn, $args, $condfn, $condargs, $level);
         static::setGtitle($gtitle, Once::$items[Once::$lastid]);
         return $res;
     }
