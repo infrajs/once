@@ -126,7 +126,7 @@ class Once
 			//if (is_array($item['result'])) $item['result'] = Once::clone($item['result']);
 		});
 	}
-	public static function func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
+	public static function &func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
 
 		$level++;
 
@@ -181,7 +181,7 @@ class Once
 
 		return $r;
 	}
-	public static function exec($gtitle, $fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0)
+	public static function &exec($gtitle, $fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0)
     {   
         $level++;
         $res = static::func($fn, $args, $condfn, $condargs, $level);
