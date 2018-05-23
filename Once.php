@@ -37,10 +37,11 @@ class Once
 	}
 	public static function encode($str) {
 		if (strlen($str)>100) return md5($str);
-		$str = preg_replace('/[\\\\\\/\.,]/ui',"_",$str);//Принципиальные, но запрещённые символы
+		if (preg_match('/[^a-zA-ZА-Яа-я0-9\s\-_]/ui',$str)) return md5($str);
+		/*$str = preg_replace('/[\\\\\\/\.,]/ui',"_",$str);//Принципиальные, но запрещённые символы
 		$str = preg_replace("/[^a-zA-ZА-Яа-я0-9~\-!_]/ui","-",$str);
 		$str = preg_replace('/\-+/', '-', $str);
-		$str = trim($str,'-');
+		$str = trim($str,'-');*/
 		return $str;
 	}
 	public static $rp = false;
