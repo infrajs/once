@@ -128,7 +128,9 @@ class Once
 		});
 	}
 	public static function &func($fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0){
-
+		
+		if ($level === false) return call_user_func_array($fn, $args);
+		
 		$level++;
 
 		$item = &static::createItem($args, $condfn, $condargs, $level);
@@ -184,6 +186,7 @@ class Once
 	}
 	public static function &exec($gtitle, $fn, $args = array(), $condfn = array(), $condargs = array(), $level = 0)
     {   
+    	if ($level === false) return call_user_func_array($fn, $args);
         $level++;
         $res = static::func($fn, $args, $condfn, $condargs, $level);
         static::setGtitle($gtitle, Once::$items[Once::$lastid]);
